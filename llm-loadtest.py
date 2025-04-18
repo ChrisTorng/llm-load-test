@@ -12,6 +12,7 @@ import glob
 import statistics
 from datetime import datetime
 import matplotlib.pyplot as plt
+import re  # 用於移除 JSONC 中的註解
 
 async def worker(seq, sem, config, problems, test_start, results):
     # 等待 平行處理 槽位
@@ -39,7 +40,11 @@ async def worker(seq, sem, config, problems, test_start, results):
                 start_ttft = datetime.now()
                 await resp.content.read(1)
                 t1 = datetime.now()
-                data = await resp.json()
+                text = await resp.text()
+                # print("回應內容:", text)
+                if not text.strip().startswith('{'):
+                    text = '{' + text
+                data = json.loads(text)
         t2 = datetime.now()
         # 解析回答
         ans = data['choices'][0]['message']['content'].replace('\n', ' ')
@@ -63,10 +68,26 @@ async def main():
     # 解析 設定檔
     import sys
     if len(sys.argv) != 2:
-        print(f"用法: python {sys.argv[0]} <設定檔>.json")
+        print(f"用法: python {sys.argv[0]} <設定檔>.jsonc 或 .json")
         sys.exit(1)
     cfg_path = sys.argv[1]
-    config = json.load(open(cfg_path, encoding='utf-8'))
+    # 支援 jsonc，先移除註解再解析
+    with open(cfg_path, encoding='utf-8') as f:
+        raw = f.read()
+    # 移除單行註解 (必須在行首或前面有空白)
+    raw = re.sub(r'(?m)^\s*//.*$|(?<=\s)//.*', '', raw)
+    # 移除多行註解
+    raw = re.sub(r'/\*[\s\S]*?\*/', '', raw)
+    # 移除尾隨逗號 (JSONC 支援)
+    raw = re.sub(r',(\s*[}\]])', r'\1', raw)
+    # 清除非法控制字元
+    raw = ''.join(ch for ch in raw if ch >= ' ' or ch in '\t\r\n')
+    try:
+        config = json.loads(raw)
+    except json.JSONDecodeError as e:
+        print(f"JSON 解析錯誤: {e}")
+        print("請確認 JSON 格式是否正確")
+        sys.exit(1)
     base = os.path.splitext(os.path.basename(cfg_path))[0]
     # 計算 seq
     existing = glob.glob(f"{base}.*.answers.txt")
@@ -96,19 +117,19 @@ async def main():
     current_limit = initial
     # 記錄時間起點
     test_start = datetime.now()
-    # 計畫 增量
-    for ev in ramp:
-        after = ev['after_seconds']
-        add = ev['add']
-        asyncio.get_event_loop().call_later(after, lambda a=add: release_sem(a))
-        # release_sem 還需定義
-    # 設定 release_sem
+    # 設定 release_sem，動態調整 Semaphore 限制
     def release_sem(add_count):
         nonlocal current_limit
         new_limit = min(current_limit + add_count, max_conc)
         for _ in range(new_limit - current_limit):
             sem.release()
         current_limit = new_limit
+
+    # 計畫 增量
+    for ev in ramp:
+        after = ev['after_seconds']
+        add = ev['add']
+        asyncio.get_event_loop().call_later(after, lambda a=add: release_sem(a))
     # 建立 任務
     results = []
     tasks = [asyncio.create_task(worker(i, sem, config, problems, test_start, results)) for i in range(1, total_req + 1)]

@@ -1,0 +1,22 @@
+{
+    "id": "chatcmpl-587",
+    "object": "chat.completion",
+    "created": 1745010760,
+    "model": "dsr11.5",
+    "system_fingerprint": "fp_ollama",
+    "choices": [
+        {
+            "index": 0,
+            "message": {
+                "role": "assistant",
+                "content": "\u003cthink\u003e\n\n\u003c/think\u003e\n\n是的，这是问题一！如果您需要帮助理解或解答任何具体的问题，请提供更多信息或详细说明。我会尽力为您提供详细的解释和解答。"
+            },
+            "finish_reason": "stop"
+        }
+    ],
+    "usage": {
+        "prompt_tokens": 16,
+        "completion_tokens": 36,
+        "total_tokens": 52
+    }
+}

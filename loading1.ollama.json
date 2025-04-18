@@ -1,0 +1,14 @@
+{
+  "problem_file": "problems1.md",
+  "num_problems": 20,
+  "url": "http://localhost:11434/v1/chat/completions",
+  "model": "dsr11.5",
+  "system_prompt": "你是優秀的 AI 助手。",
+  "load_profile": {
+    "initial_concurrent": 1,
+    "ramp_up": [
+    ],
+    "max_concurrent": 1,
+    "total_requests": 1
+  }
+}
