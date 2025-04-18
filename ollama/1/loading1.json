@@ -1,5 +1,5 @@
 {
-  "problem_file": "problems1.md",
+  "problem_file": "problems\\problems1.md",
   "num_problems": 20,
   "url": "http://localhost:11434/v1/chat/completions",
   "model": "dsr11.5",

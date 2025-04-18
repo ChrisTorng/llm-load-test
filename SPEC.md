@@ -24,7 +24,7 @@ python llm-loadtest.py <設定檔>.json
 - 統計值檔檔名: "{config_name}.{seq}.stats.txt"
 - 統計圖檔檔名: "{config_name}.{seq}.graph.{kind}.png"
 
-以上 `{config_name}` 為設定檔基底名稱（不含 `.json`），`{seq}` 為流水號，`{kind}` 為圖表類型標示。
+所有輸出檔案均放在設定檔所在資料夾之下，並以 {seq} 為名稱 建立子資料夾（僅含數字名稱），序號由 1 開始。檔名維持不變，僅將檔案置於上述資料夾下。
 
 ---
 

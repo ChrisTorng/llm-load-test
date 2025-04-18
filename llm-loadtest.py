@@ -88,21 +88,20 @@ async def main():
         print(f"JSON 解析錯誤: {e}")
         print("請確認 JSON 格式是否正確")
         sys.exit(1)
+    # 根據設定檔路徑計算輸出資料夾
+    abs_cfg = os.path.abspath(cfg_path)
+    cfg_dir = os.path.dirname(abs_cfg)
     base = os.path.splitext(os.path.basename(cfg_path))[0]
-    # 計算 seq
-    existing = glob.glob(f"{base}.*.answers.txt")
-    seq = 1
-    for fn in existing:
-        try:
-            n = int(fn.split('.')[1])
-            seq = max(seq, n + 1)
-        except:
-            continue
-    # 檔名
-    answers_file = f"{base}.{seq}.answers.txt"
-    stats_file = f"{base}.{seq}.stats.txt"
-    graph1_file = f"{base}.{seq}.graph.latency.png"
-    graph2_file = f"{base}.{seq}.graph.concurrent.png"
+    # 計算下一個 seq: 資料夾以數字命名
+    dirs = [d for d in os.listdir(cfg_dir) if os.path.isdir(os.path.join(cfg_dir, d)) and d.isdigit()]
+    seq = max((int(d) for d in dirs), default=0) + 1
+    output_dir = os.path.join(cfg_dir, str(seq))
+    os.makedirs(output_dir, exist_ok=True)
+    # 檔名置於 seq 資料夾下
+    answers_file = os.path.join(output_dir, f"{base}.{seq}.answers.txt")
+    stats_file = os.path.join(output_dir, f"{base}.{seq}.stats.txt")
+    graph1_file = os.path.join(output_dir, f"{base}.{seq}.graph.latency.png")
+    graph2_file = os.path.join(output_dir, f"{base}.{seq}.graph.concurrent.png")
     # 讀取 問題列表
     with open(config['problem_file'], 'r', encoding='utf-8') as f:
         lines = [l.strip()[3:] for l in f if l.strip() and l.strip()[0].isdigit()]

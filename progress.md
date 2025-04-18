@@ -20,3 +20,7 @@ uv pip install asyncio aiohttp statistics matplotlib
 uv pip freeze > requirements.txt
 ```
 10. Explain by Copilot
+
+以下改回 o4-mini (Preview):
+
+11. 請修改 SPEC.md，所有輸出檔案均放在設定檔目前資料夾之下，以 {seq} 建立資料夾 (亦即僅有數字名稱資料夾)，數字由 1 開始。檔名仍維持不變，僅有要求全部位於以上資料夾之下。修改完 SPEC.md 再修改相關 py。
