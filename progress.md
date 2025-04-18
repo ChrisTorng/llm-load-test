@@ -1,0 +1,1 @@
+1. Agent: 請依 SPEC.draft.md 指示，再為我生成完整規格檔 SPEC.md。
