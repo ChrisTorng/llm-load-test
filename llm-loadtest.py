@@ -12,6 +12,12 @@ import glob
 import statistics
 from datetime import datetime
 import matplotlib.pyplot as plt
+import matplotlib
+# 設定中文字體以避免中文顯示錯誤
+matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+matplotlib.rcParams['font.family'] = 'sans-serif'
+matplotlib.rcParams['axes.unicode_minus'] = False
+
 import re  # 用於移除 JSONC 中的註解
 
 async def worker(seq, sem, config, problems, test_start, results):
