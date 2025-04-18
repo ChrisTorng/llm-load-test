@@ -19,8 +19,9 @@ matplotlib.rcParams['font.family'] = 'sans-serif'
 matplotlib.rcParams['axes.unicode_minus'] = False
 
 import re  # 用於移除 JSONC 中的註解
+import sys  # 新增 sys 以解析命令列參數
 
-async def worker(seq, sem, config, problems, test_start, results):
+async def worker(seq, sem, config, problems, test_start, results, debug=False):
     # 等待 平行處理 槽位
     await sem.acquire()
     try:
@@ -41,17 +42,28 @@ async def worker(seq, sem, config, problems, test_start, results):
         # 時間指標
         t0 = datetime.now()
         async with aiohttp.ClientSession() as session:
+            payload['stream'] = True  # 使用 串流模式
             async with session.post(url, json=payload) as resp:
-                # TTFT: 讀取第一個字元
-                start_ttft = datetime.now()
-                await resp.content.read(1)
-                t1 = datetime.now()
-                text = await resp.text()
-                # print("回應內容:", text)
-                if not text.strip().startswith('{'):
-                    text = '{' + text
-                data = json.loads(text)
-        t2 = datetime.now()
+                start_ttft_time = None
+                text = ''
+                async for raw_bytes in resp.content:
+                    decoded = raw_bytes.decode('utf-8')
+                    for line in decoded.splitlines():
+                        if line.startswith('data:'):
+                            data_str = line[len('data:'):].strip()
+                            if data_str == '[DONE]':
+                                break
+                            chunk = json.loads(data_str)
+                            content = chunk['choices'][0]['delta'].get('content', '')
+                            if content:
+                                if start_ttft_time is None:
+                                    start_ttft_time = datetime.now()
+                                    t1 = start_ttft_time
+                                text += content
+                                if debug:
+                                    print(content, end='', flush=True)
+                t2 = datetime.now()
+                data = {'choices': [{'message': {'content': text}}]}
         # 解析回答
         ans = data['choices'][0]['message']['content'].replace('\n', ' ')
         # 計算時間
@@ -71,12 +83,16 @@ async def worker(seq, sem, config, problems, test_start, results):
         sem.release()
 
 async def main():
-    # 解析 設定檔
-    import sys
-    if len(sys.argv) != 2:
-        print(f"用法: python {sys.argv[0]} <設定檔>.jsonc 或 .json")
+    # 解析命令列參數 支援 -d 顯示 串流 訊息
+    args = sys.argv[1:]
+    debug = False
+    if args and args[0] == '-d':
+        debug = True
+        args = args[1:]
+    if not args:
+        print(f"用法: python {sys.argv[0]} [-d] <設定檔>.jsonc 或 .json")
         sys.exit(1)
-    cfg_path = sys.argv[1]
+    cfg_path = args[0]
     # 支援 jsonc，先移除註解再解析
     with open(cfg_path, encoding='utf-8') as f:
         raw = f.read()
@@ -137,7 +153,7 @@ async def main():
         asyncio.get_event_loop().call_later(after, lambda a=add: release_sem(a))
     # 建立 任務
     results = []
-    tasks = [asyncio.create_task(worker(i, sem, config, problems, test_start, results)) for i in range(1, total_req + 1)]
+    tasks = [asyncio.create_task(worker(i, sem, config, problems, test_start, results, debug)) for i in range(1, total_req + 1)]
     # 等待完成
     await asyncio.gather(*tasks)
     # 寫入 回答檔

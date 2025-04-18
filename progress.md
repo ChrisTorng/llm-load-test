@@ -32,3 +32,5 @@ uv pip freeze > requirements.txt
 13. UserWarning: Glyph 22519 (\N{CJK UNIFIED IDEOGRAPH-57F7}) missing from font(s) DejaVu Sans.
       plt.savefig(graph1_file)
     請修正圖表內中文編碼錯誤。
+14. 目前的 TTFT/completion 時間都一樣。請修改呼叫 LLM 為 streaming 模式，這樣才有正確時間。命令列增加 -d 參數，可以顯示目前接收到的傳回訊息，也要支援 streaming 顯示。
+15. 

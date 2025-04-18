@@ -5,10 +5,11 @@
   "model": "dsr11.5",
   "system_prompt": "你是優秀的 AI 助手。",
   "load_profile": {
-    "initial_concurrent": 1,
+    "initial_concurrent": 2,
     "ramp_up": [
+       { "after_seconds": 1, "add": 2 }
     ],
-    "max_concurrent": 1,
-    "total_requests": 1
+    "max_concurrent": 4,
+    "total_requests": 10
   }
 }
