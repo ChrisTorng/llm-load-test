@@ -78,6 +78,7 @@ async def worker(seq, sem, config, problems, test_start, results, debug=False):
             'ttft': ttft,
             'completion': completion,
             'prompt_no': (seq - 1) % len(problems) + 1,
+            'problem': problem,
             'answer': ans
         })
     finally:
@@ -169,9 +170,9 @@ async def main():
     # 寫入 回答檔
     with open(answers_file, 'w', encoding='utf-8') as f:
         # 寫入欄位名稱
-        f.write('abs_time\trel_time\tttft\tcompletion\tround\tindex_in_round\tprompt_no\tanswer\n')
+        f.write('abs_time\trel_time\tttft\tcompletion\tround\tindex_in_round\tprompt_no\tproblem\tanswer\n')
         for r in sorted(results, key=lambda x: x['seq']):
-            f.write(f"{r['abs_time']}\t{r['rel_time']}\t{r['ttft']:.6f}\t{r['completion']:.6f}\t{(r['seq']-1)//len(problems)+1}\t{(r['seq']-1)%len(problems)+1}\t{r['prompt_no']}\t{r['answer']}\n")
+            f.write(f"{r['abs_time']}\t{r['rel_time']}\t{r['ttft']:.6f}\t{r['completion']:.6f}\t{(r['seq']-1)//len(problems)+1}\t{(r['seq']-1)%len(problems)+1}\t{r['prompt_no']}\t{r['problem']}\t{r['answer']}\n")
     # 計算 統計
     ttfts = [r['ttft'] for r in results]
     comps = [r['completion'] for r in results]
