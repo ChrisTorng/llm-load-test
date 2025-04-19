@@ -22,14 +22,14 @@ llm-load-test 是一套針對大型語言模型（LLM）API 進行壓力測試�
    ```
 3. 執行測試主程式：
    ```pwsh
-   python .\llm-loadtest.py .\ollama\1\loading1.json
+   python .\llm-loadtest.py .\ollama\1\easy.json
    ```
    - 可選參數 `-d`：執行時輸出回覆答案內容，便於除錯與觀察串流回應。
 4. 執行結果將輸出至 json 設定檔之下數字資料夾，包括:
-   - `loading1.1.answers.txt` 所有回答答案
-   - `loading1.1.stats.txt` 統計數據
-   - `loading1.1.graph.latency.png` 延遲時間圖
-   - `loading1.1.graph.concurrent.png` 平行處理量圖
+   - `easy.1.answers.txt` 所有回答答案
+   - `easy.1.stats.txt` 統計數據
+   - `easy.1.graph.latency.png` 延遲時間圖
+   - `easy.1.graph.concurrent.png` 平行處理量圖
 
 ## 相關檔案說明
 - `llm-loadtest.py`：主程式碼產生器，負責依據設定檔執行壓力測試。

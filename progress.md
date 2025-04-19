@@ -38,3 +38,8 @@ uv pip freeze > requirements.txt
 17. 「`requests_per_batch`: 每個批次內每個要求要重覆呼叫幾次（原 total_requests）」不確定是否有誤解。我想的是一個 batch 裡面比如說同時 10 個呼叫，那這 10 個呼叫結束後，還會再重覆相同的呼叫，這個參數要控制說重覆呼叫幾次。也就是若 batch_concurrent=10，重覆呼叫值 5，那就是它們會呼叫 50 次。若 max_batches=3 那代表全部的呼叫 150 次。
 請將以上建議幫我修改完成。
 18. 請為我撰寫 REAMD.md 提供專案摘要說明。並請說明目前 loading1.json 是依賴本機 Ollama dsr11.5 模型，對應 [deepseek-r1 1.5b](https://ollama.com/library/deepseek-r1:1.5b) 模型。可由 `uv` 建立虛擬環境，`requirements.txt` 還原套件，執行參數為 `python .\llm-loadtest.py .\ollama\1\loading1.json`，有可選參數 `-d` 輸出回覆答案。
+19. 我要刪除目前的 problems1.md 所有的問題，請為我建立新的問題組，每組十個問題:
+    - problems.easy.md: 很容易不用思考就可以直接回答的問題
+    - problems.reason.md: 很困難需要高度推理才能回答的問題
+    - problems.fix-length.md: 要求 LLM 的回答能固定長度 token 數量的問題 (為方便壓力測試控制固定的回答長度，避免壓測數據因為回答長度不同導致數據差異太大)，比如說要求由 1 數到 10 且不要加入其他說明文字等等。每個問題所需的答案 tokens 數都要能一致。
+    => 有手工修問題，修改 loading.json 為 easy/reason/fix-length.json。
