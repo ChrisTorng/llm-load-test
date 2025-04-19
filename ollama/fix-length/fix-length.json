@@ -1,5 +1,5 @@
 {
-  "problem_file": "ollama/easy/fix-length.md",
+  "problem_file": "fix-length.md",
   "num_problems": 10,
   "url": "http://localhost:11434/v1/chat/completions",
   "model": "dsr11.5",

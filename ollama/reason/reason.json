@@ -1,5 +1,5 @@
 {
-  "problem_file": "ollama/easy/reason.md",
+  "problem_file": "reason.md",
   "num_problems": 10,
   "url": "http://localhost:11434/v1/chat/completions",
   "model": "dsr11.5",

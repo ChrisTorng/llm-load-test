@@ -20,6 +20,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 
 import re  # 用於移除 JSONC 中的註解
 import sys  # 新增 sys 以解析命令列參數
+import shutil  # 用於複製檔案
 
 async def worker(seq, sem, config, problems, test_start, results, debug=False):
     # 等待 平行處理 槽位
@@ -119,13 +120,26 @@ async def main():
     seq = max((int(d) for d in dirs), default=0) + 1
     output_dir = os.path.join(cfg_dir, str(seq))
     os.makedirs(output_dir, exist_ok=True)
+    # 複製 設定檔 並在副檔名前加上 seq
+    cfg_basename = os.path.basename(cfg_path)
+    base_name, ext = os.path.splitext(cfg_basename)
+    new_cfg_name = f"{base_name}.{seq}{ext}"
+    shutil.copy(cfg_path, os.path.join(output_dir, new_cfg_name))
+    problem_src = config['problem_file']
+    if not os.path.isabs(problem_src):
+        problem_src = os.path.join(cfg_dir, problem_src)
+    # 複製 問題檔 並在副檔名前加上 seq
+    prob_basename = os.path.basename(problem_src)
+    prob_base, prob_ext = os.path.splitext(prob_basename)
+    new_problem_name = f"{prob_base}.{seq}{prob_ext}"
+    shutil.copy(problem_src, os.path.join(output_dir, new_problem_name))
     # 檔名置於 seq 資料夾下
     answers_file = os.path.join(output_dir, f"{base}.{seq}.answers.txt")
     stats_file = os.path.join(output_dir, f"{base}.{seq}.stats.txt")
     graph1_file = os.path.join(output_dir, f"{base}.{seq}.graph.latency.png")
     graph2_file = os.path.join(output_dir, f"{base}.{seq}.graph.concurrent.png")
     # 讀取 問題列表
-    with open(config['problem_file'], 'r', encoding='utf-8') as f:
+    with open(problem_src, 'r', encoding='utf-8') as f:
         lines = [l.strip()[3:] for l in f if l.strip() and l.strip()[0].isdigit()]
     problems = lines[:config['num_problems']]
     # 平行處理 構建

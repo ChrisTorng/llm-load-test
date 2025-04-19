@@ -1,13 +1,13 @@
 {
-  "problem_file": "ollama/easy/easy.md",
+  "problem_file": "easy.md",
   "num_problems": 10,
   "url": "http://localhost:11434/v1/chat/completions",
   "model": "dsr11.5",
   "system_prompt": "你是優秀的 AI 助手，一律使用繁體中文台灣用語回答。",
   "load_profile": {
-    "batch_concurrent": 2,
+    "batch_concurrent": 1,
     "batch_interval_seconds": 1,
-    "max_batches": 4,
-    "repeat_per_request": 10
+    "max_batches": 1,
+    "repeat_per_request": 2
   }
 }

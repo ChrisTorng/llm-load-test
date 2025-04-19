@@ -1,3 +1,5 @@
 *.txt
 *.png
 !requirements.txt
+*.*.json
+*.*.md

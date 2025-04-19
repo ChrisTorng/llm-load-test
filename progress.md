@@ -44,4 +44,10 @@ uv pip freeze > requirements.txt
     - problems.fix-length.md: 要求 LLM 的回答能固定長度 token 數量的問題 (為方便壓力測試控制固定的回答長度，避免壓測數據因為回答長度不同導致數據差異太大)，比如說要求由 1 數到 10 且不要加入其他說明文字等等。每個問題所需的答案 tokens 數都要能一致。
     => 有手工修問題，修改 loading.json 為 easy/reason/fix-length.json。
 20. (json/md 精簡檔名並搬移位置)
-21. 
+21. 請在建立輸出資料夾後，先將目前的設定檔及問題檔複製到輸出資料夾。
+22. 修正執行錯誤。
+23. 執行 python .\llm-loadtest.py .\ollama\fix-length\fix-length.json 直到無錯誤。
+    => 取消退回
+24. 問題檔 md 改為由設定檔 json 之相對路徑。依目前來說兩個檔就是同路徑，因此完全不用寫相對路徑。請修改 py 及所有 json。
+25. 複製 json/md 到目標資料夾時，同樣也要套 {seq} 在副檔名之前，與 txt/png 一樣。
+    (增加 `.gitignore` 忽略複製後之設定及問題檔)
