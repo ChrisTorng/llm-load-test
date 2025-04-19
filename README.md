@@ -8,7 +8,7 @@ llm-load-test 是一套針對大型語言模型（LLM）API 進行壓力測試�
 使用 GitHub Copilot 製作過程紀錄於 [progress.md](progress.md)。規格草案為 [SPEC.draft.md](SPEC.draft.md)，詳細規格為 [SPEC.md](SPEC.md)。
 
 ## 依賴模型說明
-目前 `ollama/1/loading1.json` 設定檔預設依賴本機端 Ollama 伺服器，模型名稱為 `dsr11.5`，對應 [deepseek-r1 1.5b](https://ollama.com/library/deepseek-r1:1.5b) 模型。請先於本機安裝並啟動 Ollama，並下載對應模型。
+目前 `ollama/1/easy.json` 設定檔預設依賴本機端 Ollama 伺服器，模型名稱為 `dsr11.5`，對應 [deepseek-r1 1.5b](https://ollama.com/library/deepseek-r1:1.5b) 模型。請先於本機安裝並啟動 Ollama，並下載對應模型。
 
 ## 環境設定與執行方式
 1. 使用 [uv](https://github.com/astral-sh/uv) 建立虛擬環境：
