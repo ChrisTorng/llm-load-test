@@ -169,10 +169,13 @@ async def main():
     await asyncio.gather(*tasks)
     # 寫入 回答檔
     with open(answers_file, 'w', encoding='utf-8') as f:
-        # 寫入欄位名稱
-        f.write('abs_time\trel_time\tttft\tcompletion\tround\tindex_in_round\tprompt_no\tproblem\tanswer\n')
+        # 寫入欄位名稱，將 round 改為 batch，index_in_round 改為 index_in_batch
+        f.write('abs_time\trel_time\tttft\tcompletion\tbatch\tindex_in_batch\tprompt_no\tproblem\tanswer\n')
         for r in sorted(results, key=lambda x: x['seq']):
-            f.write(f"{r['abs_time']}\t{r['rel_time']}\t{r['ttft']:.6f}\t{r['completion']:.6f}\t{(r['seq']-1)//len(problems)+1}\t{(r['seq']-1)%len(problems)+1}\t{r['prompt_no']}\t{r['problem']}\t{r['answer']}\n")
+            # 計算批次 (batch) 與在批次內的序號 (index_in_batch)
+            batch_no = (r['seq'] - 1) // (batch_concurrent * repeat_per_request) + 1
+            index_in_batch = (r['seq'] - 1) % (batch_concurrent * repeat_per_request) + 1
+            f.write(f"{r['abs_time']}\t{r['rel_time']}\t{r['ttft']:.6f}\t{r['completion']:.6f}\t{batch_no}\t{index_in_batch}\t{r['prompt_no']}\t{r['problem']}\t{r['answer']}\n")
     # 計算 統計
     ttfts = [r['ttft'] for r in results]
     comps = [r['completion'] for r in results]

@@ -52,4 +52,4 @@ uv pip freeze > requirements.txt
 25. 複製 json/md 到目標資料夾時，同樣也要套 {seq} 在副檔名之前，與 txt/png 一樣。
     (增加 `.gitignore` 忽略複製後之設定及問題檔)
 26. 輸出回答檔中，在目前的答案欄前，再增加輸出原始問題編號，及問題 兩欄。
-27. 
+27. 目前的 fix-length.json 執行結果 fix-length.3.answers.txt 似乎怪怪的。首先 answers 中的 round 是否要更新名稱? 另目前 round 值都是 1，那參考 json 裡的 batch_concurrent=1;max_batches=2;repeat_per_request=2，我看起來 round 值都是 1 的意義似乎不太正確，請依最新的 json 設定值的意義再仔細檢查。

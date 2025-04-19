@@ -7,7 +7,7 @@
   "load_profile": {
     "batch_concurrent": 1,
     "batch_interval_seconds": 1,
-    "max_batches": 1,
-    "repeat_per_request": 3
+    "max_batches": 2,
+    "repeat_per_request": 2
   }
 }
