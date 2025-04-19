@@ -130,30 +130,26 @@ async def main():
     problems = lines[:config['num_problems']]
     # 平行處理 構建
     lp = config['load_profile']
-    initial = lp['initial_concurrent']
-    ramp = lp.get('ramp_up', [])
-    max_conc = lp['max_concurrent']
-    total_req = lp['total_requests']
-    sem = asyncio.Semaphore(initial)
-    current_limit = initial
+    batch_concurrent = lp['batch_concurrent']
+    batch_interval_seconds = lp['batch_interval_seconds']
+    max_batches = lp['max_batches']
+    repeat_per_request = lp['repeat_per_request']
     # 記錄時間起點
     test_start = datetime.now()
-    # 設定 release_sem，動態調整 Semaphore 限制
-    def release_sem(add_count):
-        nonlocal current_limit
-        new_limit = min(current_limit + add_count, max_conc)
-        for _ in range(new_limit - current_limit):
-            sem.release()
-        current_limit = new_limit
-
-    # 計畫 增量
-    for ev in ramp:
-        after = ev['after_seconds']
-        add = ev['add']
-        asyncio.get_event_loop().call_later(after, lambda a=add: release_sem(a))
-    # 建立 任務
     results = []
-    tasks = [asyncio.create_task(worker(i, sem, config, problems, test_start, results, debug)) for i in range(1, total_req + 1)]
+    sem = asyncio.Semaphore(batch_concurrent * max_batches)
+    tasks = []
+    total_batches = max_batches
+    total_requests = batch_concurrent * repeat_per_request * max_batches
+    # 依批次啟動
+    seq = 1
+    for batch in range(max_batches):
+        for i in range(batch_concurrent):
+            for j in range(repeat_per_request):
+                tasks.append(asyncio.create_task(worker(seq, sem, config, problems, test_start, results, debug)))
+                seq += 1
+        if batch < max_batches - 1:
+            await asyncio.sleep(batch_interval_seconds)
     # 等待完成
     await asyncio.gather(*tasks)
     # 寫入 回答檔
@@ -186,8 +182,9 @@ async def main():
     plt.legend()
     plt.savefig(graph1_file)
     # 2. 平行處理 vs 時間
-    ev_times = [0] + [ev['after_seconds'] for ev in ramp]
-    concs = [initial] + [min(initial + sum(ev['add'] for ev in ramp[:i]), max_conc) for i in range(1, len(ramp)+1)]
+    # 以批次啟動時間與平行數繪圖
+    ev_times = [i * batch_interval_seconds for i in range(max_batches + 1)]
+    concs = [batch_concurrent * (i if i <= max_batches else max_batches) for i in range(max_batches + 1)]
     plt.figure()
     plt.step(ev_times, concs, where='post')
     plt.xlabel('執行時刻 (秒)')

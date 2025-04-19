@@ -54,16 +54,19 @@ python llm-loadtest.py <設定檔>.json
   "system_prompt": "You are a helpful assistant.",
 
   "load_profile": {
-    "initial_concurrent": 10,             // 初始同時發出要求數
-    "ramp_up": [                         // 之後每個輪次增加量與間隔
-      { "after_seconds": 30, "add": 5 },
-      { "after_seconds": 60, "add": 10 }
-    ],
-    "max_concurrent": 100,               // 最多同時要求數上限
-    "total_requests": 1000               // 全部要求次數上限
-  },
+    "batch_concurrent": 10,             // 每個批次同時發出要求數
+    "batch_interval_seconds": 30,       // 每隔幾秒啟動下一個批次
+    "max_batches": 3,                   // 最多啟動幾個批次
+    "repeat_per_request": 5             // 每個要求重覆呼叫幾次
+  }
 }
 ```
+
+### 參數說明
+- `batch_concurrent`：每個批次同時發出的要求數（如 10 代表每批同時 10 個要求）
+- `batch_interval_seconds`：每隔幾秒啟動下一個批次
+- `max_batches`：最多啟動幾個批次（如 3 代表最多同時有 3 個批次在執行）
+- `repeat_per_request`：每個要求重覆呼叫幾次（如 5 代表每個要求會重覆 5 次，總呼叫次數 = batch_concurrent × repeat_per_request × max_batches）
 
 ---
 
