@@ -22,67 +22,62 @@ import re  # 用於移除 JSONC 中的註解
 import sys  # 新增 sys 以解析命令列參數
 import shutil  # 用於複製檔案
 
-async def worker(seq, sem, config, problems, test_start, results, debug=False):
-    # 等待 平行處理 槽位
-    await sem.acquire()
-    try:
-        url = config['url']
-        model = config['model']
-        system_prompt = config.get('system_prompt', '')
-        total_start = datetime.now()
-        rel_start = (total_start - test_start).total_seconds()
-        # 選擇問題
-        problem = problems[(seq - 1) % len(problems)]
-        payload = {
-            'model': model,
-            'messages': [
-                {'role': 'system', 'content': system_prompt},
-                {'role': 'user', 'content': problem}
-            ]
-        }
-        # 時間指標
-        t0 = datetime.now()
-        async with aiohttp.ClientSession() as session:
-            payload['stream'] = True  # 使用 串流模式
-            async with session.post(url, json=payload) as resp:
-                start_ttft_time = None
-                text = ''
-                async for raw_bytes in resp.content:
-                    decoded = raw_bytes.decode('utf-8')
-                    for line in decoded.splitlines():
-                        if line.startswith('data:'):
-                            data_str = line[len('data:'):].strip()
-                            if data_str == '[DONE]':
-                                break
-                            chunk = json.loads(data_str)
-                            content = chunk['choices'][0]['delta'].get('content', '')
-                            if content:
-                                if start_ttft_time is None:
-                                    start_ttft_time = datetime.now()
-                                    t1 = start_ttft_time
-                                text += content
-                                if debug:
-                                    print(content, end='', flush=True)
-                t2 = datetime.now()
-                data = {'choices': [{'message': {'content': text}}]}
-        # 解析回答
-        ans = data['choices'][0]['message']['content'].replace('\n', ' ')
-        # 計算時間
-        ttft = (t1 - t0).total_seconds()
-        completion = (t2 - t0).total_seconds()
-        # 記錄結果
-        results.append({
-            'seq': seq,
-            'abs_time': total_start.strftime('%H:%M:%S.%f')[:-3],
-            'rel_time': f"{rel_start // 60:02.0f}:{rel_start % 60:06.3f}",
-            'ttft': ttft,
-            'completion': completion,
-            'prompt_no': (seq - 1) % len(problems) + 1,
-            'problem': problem,
-            'answer': ans
-        })
-    finally:
-        sem.release()
+async def worker(seq, config, problems, test_start, results, debug=False):
+    url = config['url']
+    model = config['model']
+    system_prompt = config.get('system_prompt', '')
+    total_start = datetime.now()
+    rel_start = (total_start - test_start).total_seconds()
+    # 選擇問題
+    problem = problems[(seq - 1) % len(problems)]
+    payload = {
+        'model': model,
+        'messages': [
+            {'role': 'system', 'content': system_prompt},
+            {'role': 'user', 'content': problem}
+        ]
+    }
+    # 時間指標
+    t0 = datetime.now()
+    async with aiohttp.ClientSession() as session:
+        payload['stream'] = True  # 使用 串流模式
+        async with session.post(url, json=payload) as resp:
+            start_ttft_time = None
+            text = ''
+            async for raw_bytes in resp.content:
+                decoded = raw_bytes.decode('utf-8')
+                for line in decoded.splitlines():
+                    if line.startswith('data:'):
+                        data_str = line[len('data:'):].strip()
+                        if data_str == '[DONE]':
+                            break
+                        chunk = json.loads(data_str)
+                        content = chunk['choices'][0]['delta'].get('content', '')
+                        if content:
+                            if start_ttft_time is None:
+                                start_ttft_time = datetime.now()
+                                t1 = start_ttft_time
+                            text += content
+                            if debug:
+                                print(content, end='', flush=True)
+            t2 = datetime.now()
+            data = {'choices': [{'message': {'content': text}}]}
+    # 解析回答
+    ans = data['choices'][0]['message']['content'].replace('\n', ' ')
+    # 計算時間
+    ttft = (t1 - t0).total_seconds()
+    completion = (t2 - t0).total_seconds()
+    # 記錄結果
+    results.append({
+        'seq': seq,
+        'abs_time': total_start.strftime('%H:%M:%S.%f')[:-3],
+        'rel_time': f"{rel_start // 60:02.0f}:{rel_start % 60:06.3f}",
+        'ttft': ttft,
+        'completion': completion,
+        'prompt_no': (seq - 1) % len(problems) + 1,
+        'problem': problem,
+        'answer': ans
+    })
 
 async def main():
     # 解析命令列參數 支援 -d 顯示 串流 訊息
@@ -152,7 +147,6 @@ async def main():
     # 記錄時間起點
     test_start = datetime.now()
     results = []
-    sem = asyncio.Semaphore(batch_concurrent * max_batches)
     tasks = []
     total_batches = max_batches
     total_requests = batch_concurrent * repeat_per_request * max_batches
@@ -161,7 +155,7 @@ async def main():
     for batch in range(max_batches):
         for i in range(batch_concurrent):
             for j in range(repeat_per_request):
-                tasks.append(asyncio.create_task(worker(seq, sem, config, problems, test_start, results, debug)))
+                tasks.append(asyncio.create_task(worker(seq, config, problems, test_start, results, debug)))
                 seq += 1
         if batch < max_batches - 1:
             await asyncio.sleep(batch_interval_seconds)

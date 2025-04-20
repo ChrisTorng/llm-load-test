@@ -1,13 +1,13 @@
 {
-  "problem_file": "fix-length.md",
+  "problem_file": "reason.md",
   "num_problems": 10,
-  "url": "http://localhost:11434/v1/chat/completions",
+  "url": "http://192.168.121.113:8000/v1/chat/completions",
   "model": "dsr11.5",
   "system_prompt": "你是優秀的 AI 助手，一律使用繁體中文台灣用語回答。",
   "load_profile": {
-    "batch_concurrent": 3,
+    "batch_concurrent": 1,
     "batch_interval_seconds": 1,
-    "max_batches": 2,
-    "repeat_per_request": 4
+    "max_batches": 1,
+    "repeat_per_request": 2
   }
 }

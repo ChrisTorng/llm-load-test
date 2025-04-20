@@ -53,3 +53,6 @@ uv pip freeze > requirements.txt
     (增加 `.gitignore` 忽略複製後之設定及問題檔)
 26. 輸出回答檔中，在目前的答案欄前，再增加輸出原始問題編號，及問題 兩欄。
 27. 目前的 fix-length.json 執行結果 fix-length.3.answers.txt 似乎怪怪的。首先 answers 中的 round 是否要更新名稱? 另目前 round 值都是 1，那參考 json 裡的 batch_concurrent=1;max_batches=2;repeat_per_request=2，我看起來 round 值都是 1 的意義似乎不太正確，請依最新的 json 設定值的意義再仔細檢查。
+28. 我看回答檔內，第 0 秒開始了六個 request，但目前 json 中 batch_concurrent=3，我預期是看到三個 request 在第 0 秒發出。之後是第四秒。但我要求的 json 設定是 batch_interval_seconds=1，意思是「每隔幾秒啟動下一個批次」，因此我預期是第一秒要看到第二 batch 共三個 request 發出。目前的 request 開始時間感覺不對。
+29. #file:fix-length.8.answers.txt:2-8 
+目前看到 0 秒發出三個，但我沒有看到一秒發出下一 batch 的三個，而是在 0 秒的三個各自結束後的 5/6/6 秒，才繼續發出第 4/5/6 個 request。應該是第 1 秒又發出第二 batch 的三個 request。
