@@ -65,15 +65,16 @@ async def worker(seq, config, problems, test_start, results, debug=False):
         'messages': [
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': problem}
-        ]
+        ],
+        'stream': True
     }
     # 時間指標
     t0 = datetime.now()
     async with aiohttp.ClientSession() as session:
-        payload['stream'] = True  # 使用 串流模式
         async with session.post(url, json=payload) as resp:
             start_ttft_time = None
             text = ''
+            t1 = None  # 確保 t1 有賦值
             async for raw_bytes in resp.content:
                 decoded = raw_bytes.decode('utf-8')
                 for line in decoded.splitlines():
@@ -90,6 +91,8 @@ async def worker(seq, config, problems, test_start, results, debug=False):
                             text += content
                             if debug:
                                 print(content, end='', flush=True)
+            if t1 is None:  # 非 streaming 模式下明確賦值 t1
+                t1 = datetime.now()
             t2 = datetime.now()
             data = {'choices': [{'message': {'content': text}}]}
     # 解析回答
@@ -253,7 +256,7 @@ async def main():
         f.write('Median ITL (ms):\t\t\t\t\t{:.2f}\n'.format(stats['median_ITL']))
         f.write('P99 ITL (ms):\t\t\t\t\t\t{:.2f}\n'.format(stats['p99_ITL']))
     # 螢幕輸出同樣內容
-    print('Successful requests:\t\t\t{}'.format(stats['total_success']))
+    print('\nSuccessful requests:\t\t\t{}'.format(stats['total_success']))
     print('Benchmark duration (s):\t\t\t{:.2f}'.format((results[-1]['completion'] if results else 0)))
     print('Total input tokens:\t\t\tN/A')
     print('Total generated tokens:\t\t\tN/A')

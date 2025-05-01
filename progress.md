@@ -88,3 +88,27 @@ findfont: Generic family 'sans-serif' not found because none of the following fa
    P99 ITL (ms):                            17.47
    ```
    我看到另一個壓測程式的輸出，我要修改目前程式亦輸出一樣的結果，包括 .stat.txt 內最後再附加這段，以及螢幕 輸出。另在目前的 P90 之後增加 P99。另提供 Inter-token Latency 的解釋。
+2. 使用 'stream': False 時會有錯誤:
+(llm-load-test) PS D:\Projects\GitHub\ChrisTorng\llm-load-test> python .\llm-loadtest.py -d .\local8000\easy\easy.json  
+Traceback (most recent call last):
+  File "D:\Projects\GitHub\ChrisTorng\llm-load-test\llm-loadtest.py", line 296, in <module>
+    asyncio.run(main())
+  File "C:\Users\ChrisTorng\AppData\Roaming\uv\python\cpython-3.11.11-windows-x86_64-none\Lib\asyncio\runners.py", line 
+190, in run                                                                                                                 return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\ChrisTorng\AppData\Roaming\uv\python\cpython-3.11.11-windows-x86_64-none\Lib\asyncio\runners.py", line 
+118, in run                                                                                                                 return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ChrisTorng\AppData\Roaming\uv\python\cpython-3.11.11-windows-x86_64-none\Lib\asyncio\base_events.py", l
+ine 654, in run_until_complete                                                                                              return future.result()
+           ^^^^^^^^^^^^^^^
+  File "D:\Projects\GitHub\ChrisTorng\llm-load-test\llm-loadtest.py", line 193, in main
+    await asyncio.gather(*tasks)
+  File "D:\Projects\GitHub\ChrisTorng\llm-load-test\llm-loadtest.py", line 96, in worker
+    ans = data['choices'][0]['message']['content'].replace('\n', ' ')
+    ^^^
+UnboundLocalError: cannot access local variable 't1' where it is not associated with a value
+在不使用 streaming 時，t1 變數沒有被賦值，請修正。
+3. 請在目前 `-d` 參數之外，再提供 `-df` 參數，僅顯示第一個 token，前面附上由測試開始到目前的時間，格式:
+00:00:05.123456\t這
+還有 `-de` 參數，顯示最後一個 token，`-dv` 參數，顯示所有 token。格式皆如上。原來的 `-d` 參數輸出不要變動。
