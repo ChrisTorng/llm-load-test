@@ -12,19 +12,30 @@ llm-load-test 是一套針對大型語言模型（LLM）API 進行壓力測試�
 
 ## 環境設定與執行方式
 1. 使用 [uv](https://github.com/astral-sh/uv) 建立虛擬環境：
+
+   Windows:
    ```pwsh
    uv venv
    .\.venv\Scripts\activate
    ```
+
+   Linux:
+   ```bash
+   uv venv
+   source ./.venv/bin/activate
+   ```
+
 2. 還原相依套件：
    ```pwsh
    uv pip install -r requirements.txt
    ```
+
 3. 執行測試主程式：
    ```pwsh
    python .\llm-loadtest.py .\ollama\1\easy.json
    ```
    - 可選參數 `-d`：執行時輸出回覆答案內容，便於除錯與觀察串流回應。
+
 4. 執行結果將輸出至 json 設定檔之下數字資料夾，包括:
    - `easy.1.answers.txt` 所有回答答案
    - `easy.1.stats.txt` 統計數據

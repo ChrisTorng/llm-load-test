@@ -13,10 +13,40 @@ import statistics
 from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib
-# 設定中文字體以避免中文顯示錯誤
-matplotlib.rcParams['font.sans-serif'] = ['Microsoft YaHei']
-matplotlib.rcParams['font.family'] = 'sans-serif'
-matplotlib.rcParams['axes.unicode_minus'] = False
+import platform
+
+def _set_chinese_font():
+    sys_fonts = []
+    try:
+        from matplotlib.font_manager import fontManager
+        sys_fonts = [f.name for f in fontManager.ttflist]
+    except Exception:
+        pass
+    family = None
+    if platform.system() == 'Windows':
+        if 'Microsoft YaHei' in sys_fonts:
+            family = 'Microsoft YaHei'
+    elif platform.system() == 'Darwin':
+        # macOS 常見中文字型
+        for f in ['PingFang TC', 'Heiti TC', 'STHeitiTC-Light']:
+            if f in sys_fonts:
+                family = f
+                break
+    elif platform.system() == 'Linux':
+        # Ubuntu 常見中文字型
+        for f in ['Noto Sans CJK TC', 'WenQuanYi Zen Hei', 'AR PL UMing CN']:
+            if f in sys_fonts:
+                family = f
+                break
+    if family:
+        matplotlib.rcParams['font.sans-serif'] = [family]
+    else:
+        import warnings
+        warnings.warn('找不到合適的中文字型，請安裝 Noto Sans CJK TC 或 WenQuanYi Zen Hei 以避免中文顯示異常。')
+    matplotlib.rcParams['font.family'] = 'sans-serif'
+    matplotlib.rcParams['axes.unicode_minus'] = False
+
+_set_chinese_font()
 
 import re  # 用於移除 JSONC 中的註解
 import sys  # 新增 sys 以解析命令列參數

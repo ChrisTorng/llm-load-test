@@ -56,3 +56,13 @@ uv pip freeze > requirements.txt
 28. 我看回答檔內，第 0 秒開始了六個 request，但目前 json 中 batch_concurrent=3，我預期是看到三個 request 在第 0 秒發出。之後是第四秒。但我要求的 json 設定是 batch_interval_seconds=1，意思是「每隔幾秒啟動下一個批次」，因此我預期是第一秒要看到第二 batch 共三個 request 發出。目前的 request 開始時間感覺不對。
 29. #file:fix-length.8.answers.txt:2-8 
 目前看到 0 秒發出三個，但我沒有看到一秒發出下一 batch 的三個，而是在 0 秒的三個各自結束後的 5/6/6 秒，才繼續發出第 4/5/6 個 request。應該是第 1 秒又發出第二 batch 的三個 request。
+
+# Ubuntu
+1. Windows 下正常，但 Ubuntu 下:
+findfont: Generic family 'sans-serif' not found because none of the following families were found: Microsoft YaHei
+請支援兩種
+2. findfont: Generic family 'sans-serif' not found because none of the following families were found: Noto Sans CJK TC
+/home/christorng/GitHub/ChrisTorng/llm-load-test/llm-loadtest.py:214: UserWarning: Glyph 30070 (\N{CJK UNIFIED IDEOGRAPH-7576}) missing from font(s) DejaVu Sans.
+  plt.savefig(graph2_file)
+
+# WSL
