@@ -203,9 +203,27 @@ async def main():
     # 計算 統計
     ttfts = [r['ttft'] for r in results]
     comps = [r['completion'] for r in results]
+    # 計算 TPOT 與 ITL
+    tpot_list = []
+    itl_list = []
+    for r in results:
+        # 以 completion 減去 TTFT，除以 token 數（假設 answer token 數）
+        answer = r['answer']
+        token_count = max(len(answer), 1)
+        tpot = (r['completion'] - r['ttft']) / token_count * 1000  # ms
+        tpot_list.append(tpot)
+        itl_list.append(tpot)  # 近似處理，若有 token-by-token latency 可細分
+    def p99(lst):
+        if not lst:
+            return 0
+        idx = int(0.99 * len(lst)) - 1
+        idx = max(0, min(idx, len(lst)-1))
+        return sorted(lst)[idx]
     stats = {
-        'min_TTFT': min(ttfts), 'max_TTFT': max(ttfts), 'avg_TTFT': statistics.mean(ttfts), 'p50_TTFT': statistics.median(ttfts), 'p90_TTFT': sorted(ttfts)[int(0.9*len(ttfts))-1],
-        'min_completion_time': min(comps), 'max_completion_time': max(comps), 'avg_completion_time': statistics.mean(comps), 'p50_completion_time': statistics.median(comps), 'p90_completion_time': sorted(comps)[int(0.9*len(comps))-1],
+        'min_TTFT': min(ttfts), 'max_TTFT': max(ttfts), 'avg_TTFT': statistics.mean(ttfts), 'p50_TTFT': statistics.median(ttfts), 'p99_TTFT': p99(ttfts),
+        'min_completion_time': min(comps), 'max_completion_time': max(comps), 'avg_completion_time': statistics.mean(comps), 'p50_completion_time': statistics.median(comps), 'p99_completion_time': p99(comps),
+        'mean_TPOT': statistics.mean(tpot_list), 'median_TPOT': statistics.median(tpot_list), 'p99_TPOT': p99(tpot_list),
+        'mean_ITL': statistics.mean(itl_list), 'median_ITL': statistics.median(itl_list), 'p99_ITL': p99(itl_list),
         'total_success': len(results), 'total_failure': 0
     }
     # 寫入 統計檔
@@ -213,6 +231,47 @@ async def main():
         header = '\t'.join(stats.keys())
         values = '\t'.join(str(v) for v in stats.values())
         f.write(header + '\n' + values + '\n')
+        # 附加格式化摘要
+        f.write('\n')
+        f.write('Successful requests:\t\t\t\t{}\n'.format(stats['total_success']))
+        f.write('Benchmark duration (s):\t\t\t\t{:.2f}\n'.format((results[-1]['completion'] if results else 0)))
+        f.write('Total input tokens:\t\t\t\t\tN/A\n')
+        f.write('Total generated tokens:\t\t\t\tN/A\n')
+        f.write('Request throughput (req/s):\t\t\tN/A\n')
+        f.write('Output token throughput (tok/s):\tN/A\n')
+        f.write('Total Token throughput (tok/s):\t\tN/A\n')
+        f.write('---------------Time to First Token----------------\n')
+        f.write('Mean TTFT (ms):\t\t\t\t\t\t{:.2f}\n'.format(stats['avg_TTFT']*1000))
+        f.write('Median TTFT (ms):\t\t\t\t\t{:.2f}\n'.format(stats['p50_TTFT']*1000))
+        f.write('P99 TTFT (ms):\t\t\t\t\t\t{:.2f}\n'.format(stats['p99_TTFT']*1000))
+        f.write('-----Time per Output Token (excl. 1st token)------\n')
+        f.write('Mean TPOT (ms):\t\t\t\t\t\t{:.2f}\n'.format(stats['mean_TPOT']))
+        f.write('Median TPOT (ms):\t\t\t\t\t{:.2f}\n'.format(stats['median_TPOT']))
+        f.write('P99 TPOT (ms):\t\t\t\t\t\t{:.2f}\n'.format(stats['p99_TPOT']))
+        f.write('---------------Inter-token Latency----------------\n')
+        f.write('Mean ITL (ms):\t\t\t\t\t\t{:.2f}\n'.format(stats['mean_ITL']))
+        f.write('Median ITL (ms):\t\t\t\t\t{:.2f}\n'.format(stats['median_ITL']))
+        f.write('P99 ITL (ms):\t\t\t\t\t\t{:.2f}\n'.format(stats['p99_ITL']))
+    # 螢幕輸出同樣內容
+    print('Successful requests:\t\t\t{}'.format(stats['total_success']))
+    print('Benchmark duration (s):\t\t\t{:.2f}'.format((results[-1]['completion'] if results else 0)))
+    print('Total input tokens:\t\t\tN/A')
+    print('Total generated tokens:\t\t\tN/A')
+    print('Request throughput (req/s):\t\tN/A')
+    print('Output token throughput (tok/s):\tN/A')
+    print('Total Token throughput (tok/s):\t\tN/A')
+    print('---------------Time to First Token----------------')
+    print('Mean TTFT (ms):\t\t\t\t{:.2f}'.format(stats['avg_TTFT']*1000))
+    print('Median TTFT (ms):\t\t\t{:.2f}'.format(stats['p50_TTFT']*1000))
+    print('P99 TTFT (ms):\t\t\t\t{:.2f}'.format(stats['p99_TTFT']*1000))
+    print('-----Time per Output Token (excl. 1st token)------')
+    print('Mean TPOT (ms):\t\t\t\t{:.2f}'.format(stats['mean_TPOT']))
+    print('Median TPOT (ms):\t\t\t{:.2f}'.format(stats['median_TPOT']))
+    print('P99 TPOT (ms):\t\t\t\t{:.2f}'.format(stats['p99_TPOT']))
+    print('---------------Inter-token Latency----------------')
+    print('Mean ITL (ms):\t\t\t\t{:.2f}'.format(stats['mean_ITL']))
+    print('Median ITL (ms):\t\t\t{:.2f}'.format(stats['median_ITL']))
+    print('P99 ITL (ms):\t\t\t\t{:.2f}'.format(stats['p99_ITL']))
     # 繪製 圖表
     # 1. TTFT/Completion
     times = [(datetime.strptime(r['rel_time'], '%M:%S.%f').minute*60 + datetime.strptime(r['rel_time'], '%M:%S.%f').second + datetime.strptime(r['rel_time'], '%M:%S.%f').microsecond/1e6) for r in results]

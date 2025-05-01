@@ -66,3 +66,25 @@ findfont: Generic family 'sans-serif' not found because none of the following fa
   plt.savefig(graph2_file)
 
 # WSL
+1. ```
+   Successful requests:                     1
+   Benchmark duration (s):                  2.06
+   Total input tokens:                      511
+   Total generated tokens:                  150
+   Request throughput (req/s):              0.49
+   Output token throughput (tok/s):         72.77
+   Total Token throughput (tok/s):          320.66
+   ---------------Time to First Token----------------
+   Mean TTFT (ms):                          22.78
+   Median TTFT (ms):                        22.78
+   P99 TTFT (ms):                           22.78
+   -----Time per Output Token (excl. 1st token)------
+   Mean TPOT (ms):                          13.68
+   Median TPOT (ms):                        13.68
+   P99 TPOT (ms):                           13.68
+   ---------------Inter-token Latency----------------
+   Mean ITL (ms):                           13.77
+   Median ITL (ms):                         13.56
+   P99 ITL (ms):                            17.47
+   ```
+   我看到另一個壓測程式的輸出，我要修改目前程式亦輸出一樣的結果，包括 .stat.txt 內最後再附加這段，以及螢幕 輸出。另在目前的 P90 之後增加 P99。另提供 Inter-token Latency 的解釋。
