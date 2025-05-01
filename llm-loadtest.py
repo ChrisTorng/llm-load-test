@@ -14,6 +14,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import matplotlib
 import platform
+import argparse
 
 def _set_chinese_font():
     sys_fonts = []
@@ -52,7 +53,14 @@ import re  # 用於移除 JSONC 中的註解
 import sys  # 新增 sys 以解析命令列參數
 import shutil  # 用於複製檔案
 
-async def worker(seq, config, problems, test_start, results, debug=False):
+def format_time_delta(delta):
+    # 將 timedelta 轉為 00:00:05.123456 格式
+    total_seconds = delta.total_seconds()
+    minutes, seconds = divmod(total_seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    return f"{int(hours):02}:{int(minutes):02}:{seconds:09.6f}"
+
+async def worker(seq, config, problems, test_start, results, debug=False, args=None, start_time=None):
     url = config['url']
     model = config['model']
     system_prompt = config.get('system_prompt', '')
@@ -75,6 +83,9 @@ async def worker(seq, config, problems, test_start, results, debug=False):
             start_ttft_time = None
             text = ''
             t1 = None  # 確保 t1 有賦值
+            tokens = []
+            first_token_printed = False
+            last_token = None
             async for raw_bytes in resp.content:
                 decoded = raw_bytes.decode('utf-8')
                 for line in decoded.splitlines():
@@ -89,11 +100,24 @@ async def worker(seq, config, problems, test_start, results, debug=False):
                                 start_ttft_time = datetime.now()
                                 t1 = start_ttft_time
                             text += content
-                            if debug:
+                            tokens.append(content)
+                            now = datetime.now()
+                            elapsed = now - start_time
+                            if args.d:
                                 print(content, end='', flush=True)
+                            if args.df and not first_token_printed:
+                                print(f"{format_time_delta(elapsed)}\t{content}")
+                                first_token_printed = True
+                            if args.dv:
+                                print(f"{format_time_delta(elapsed)}\t{content}")
+                            last_token = content
             if t1 is None:  # 非 streaming 模式下明確賦值 t1
                 t1 = datetime.now()
             t2 = datetime.now()
+            if args.de and last_token is not None:
+                now = datetime.now()
+                elapsed = now - start_time
+                print(f"{format_time_delta(elapsed)}\t{last_token}")
             data = {'choices': [{'message': {'content': text}}]}
     # 解析回答
     ans = data['choices'][0]['message']['content'].replace('\n', ' ')
@@ -113,16 +137,16 @@ async def worker(seq, config, problems, test_start, results, debug=False):
     })
 
 async def main():
-    # 解析命令列參數 支援 -d 顯示 串流 訊息
-    args = sys.argv[1:]
-    debug = False
-    if args and args[0] == '-d':
-        debug = True
-        args = args[1:]
-    if not args:
-        print(f"用法: python {sys.argv[0]} [-d] <設定檔>.jsonc 或 .json")
-        sys.exit(1)
-    cfg_path = args[0]
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', action='store_true', help='顯示 streaming 回覆')
+    parser.add_argument('-df', action='store_true', help='僅顯示第一個 token')
+    parser.add_argument('-de', action='store_true', help='僅顯示最後一個 token')
+    parser.add_argument('-dv', action='store_true', help='顯示所有 token')
+    parser.add_argument('config', help='設定檔路徑 (.jsonc 或 .json)')
+    args = parser.parse_args()
+    debug = args.d
+    cfg_path = args.config
+    start_time = datetime.now()
     # 支援 jsonc，先移除註解再解析
     with open(cfg_path, encoding='utf-8') as f:
         raw = f.read()
@@ -188,7 +212,7 @@ async def main():
     for batch in range(max_batches):
         for i in range(batch_concurrent):
             for j in range(repeat_per_request):
-                tasks.append(asyncio.create_task(worker(seq, config, problems, test_start, results, debug)))
+                tasks.append(asyncio.create_task(worker(seq, config, problems, test_start, results, debug, args, start_time)))
                 seq += 1
         if batch < max_batches - 1:
             await asyncio.sleep(batch_interval_seconds)
