@@ -16,39 +16,6 @@ import matplotlib
 import platform
 import argparse
 
-def _set_chinese_font():
-    sys_fonts = []
-    try:
-        from matplotlib.font_manager import fontManager
-        sys_fonts = [f.name for f in fontManager.ttflist]
-    except Exception:
-        pass
-    family = None
-    if platform.system() == 'Windows':
-        if 'Microsoft YaHei' in sys_fonts:
-            family = 'Microsoft YaHei'
-    elif platform.system() == 'Darwin':
-        # macOS 常見中文字型
-        for f in ['PingFang TC', 'Heiti TC', 'STHeitiTC-Light']:
-            if f in sys_fonts:
-                family = f
-                break
-    elif platform.system() == 'Linux':
-        # Ubuntu 常見中文字型
-        for f in ['Noto Sans CJK TC', 'WenQuanYi Zen Hei', 'AR PL UMing CN']:
-            if f in sys_fonts:
-                family = f
-                break
-    if family:
-        matplotlib.rcParams['font.sans-serif'] = [family]
-    else:
-        import warnings
-        warnings.warn('找不到合適的中文字型，請安裝 Noto Sans CJK TC 或 WenQuanYi Zen Hei 以避免中文顯示異常。')
-    matplotlib.rcParams['font.family'] = 'sans-serif'
-    matplotlib.rcParams['axes.unicode_minus'] = False
-
-_set_chinese_font()
-
 import re  # 用於移除 JSONC 中的註解
 import sys  # 新增 sys 以解析命令列參數
 import shutil  # 用於複製檔案
@@ -333,18 +300,17 @@ async def main():
     plt.figure()
     plt.plot(times, ttfts, '.', label='TTFT')
     plt.plot(times, comps, 'x', label='Completion')
-    plt.xlabel('執行時刻 (秒)')
-    plt.ylabel('秒')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Seconds')
     plt.legend()
     plt.savefig(graph1_file)
-    # 2. 平行處理 vs 時間
-    # 以批次啟動時間與平行數繪圖
+    # 2. Concurrency vs Time
     ev_times = [i * batch_interval_seconds for i in range(max_batches + 1)]
     concs = [batch_concurrent * (i if i <= max_batches else max_batches) for i in range(max_batches + 1)]
     plt.figure()
     plt.step(ev_times, concs, where='post')
-    plt.xlabel('執行時刻 (秒)')
-    plt.ylabel('當前平行處理數')
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Concurrency')
     plt.savefig(graph2_file)
 
 if __name__ == '__main__':

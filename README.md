@@ -31,10 +31,18 @@ llm-load-test 是一套針對大型語言模型（LLM）API 進行壓力測試�
    ```
 
 3. 執行測試主程式：
-   ```pwsh
-   python .\llm-loadtest.py .\ollama\1\easy.json
+   ```cmd
+   python .\llm-loadtest.py .\ollama\easy\easy.json
    ```
-   - 可選參數 `-d`：執行時輸出回覆答案內容，便於除錯與觀察串流回應。
+   ```bash
+   python ./llm-loadtest.py ./ollama/easy/easy.json
+   ```
+
+   可選參數
+   - `-d`：執行時輸出回覆答案內容，便於除錯與觀察串流回應。
+   - `-df`：僅顯示第一個 token 以及時間。
+   - `-de`：僅顯示最後一個 token 以及時間。
+   - `-dv`：顯示所有 token 以及時間。
 
 4. 執行結果將輸出至 json 設定檔之下數字資料夾，包括:
    - `easy.1.answers.txt` 所有回答答案
@@ -45,8 +53,8 @@ llm-load-test 是一套針對大型語言模型（LLM）API 進行壓力測試�
 ## 相關檔案說明
 - `llm-loadtest.py`：主程式碼產生器，負責依據設定檔執行壓力測試。
 - `requirements.txt`：相依套件清單。
-- `ollama/1/loading1.json`：測試設定檔，描述測試參數與目標模型。
-- `problems/problems1.md`：測試問題列表。
+- `ollama`/`local8000`：目前提供本機 Ollama 及任何 8000 port OpenAI 相容 API 測試設定檔資料夾，描述測試參數與目標模型。
+- `easy`/`fix-length`/`reason`：容易/固定輸出長度/推理相關 測試問題列表資料夾，以及其下的 `json` 設定檔與 `md` 問題列表檔。
 
 ## 授權
 

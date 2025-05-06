@@ -113,4 +113,7 @@ UnboundLocalError: cannot access local variable 't1' where it is not associated 
 00:00:05.123456\t這
 還有 `-de` 參數，顯示最後一個 token，`-dv` 參數，顯示所有 token。格式皆如上。原來的 `-d` 參數輸出不要變動。
 4. 請先執行一個預設的暖身題呼叫，之後再開始正式的壓測。
-5. 
+
+# WSL
+1. #terminalSelection 在 WSL 下中文字型還是有錯誤，請建立 linux-fonts.py，取得可用的中文字型後，再修正 llm-loadtest.py 中 Linux 下的中文字型。
+2. 我放棄處理中文字型問題，請刪除所有中文字型設定功能，並改 matplotlib 裡面之標示為英文。
