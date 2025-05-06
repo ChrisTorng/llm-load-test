@@ -112,3 +112,5 @@ UnboundLocalError: cannot access local variable 't1' where it is not associated 
 3. 請在目前 `-d` 參數之外，再提供 `-df` 參數，僅顯示第一個 token，前面附上由測試開始到目前的時間，格式:
 00:00:05.123456\t這
 還有 `-de` 參數，顯示最後一個 token，`-dv` 參數，顯示所有 token。格式皆如上。原來的 `-d` 參數輸出不要變動。
+4. 請先執行一個預設的暖身題呼叫，之後再開始正式的壓測。
+5. 

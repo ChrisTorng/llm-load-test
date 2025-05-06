@@ -136,6 +136,30 @@ async def worker(seq, config, problems, test_start, results, debug=False, args=N
         'answer': ans
     })
 
+async def warmup_worker(config, start_time):
+    # 預設暖身題
+    warmup_problem = "請簡單自我介紹"
+    url = config['url']
+    model = config['model']
+    system_prompt = config.get('system_prompt', '')
+    payload = {
+        'model': model,
+        'messages': [
+            {'role': 'system', 'content': system_prompt},
+            {'role': 'user', 'content': warmup_problem}
+        ],
+        'stream': True
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=payload) as resp:
+            async for raw_bytes in resp.content:
+                decoded = raw_bytes.decode('utf-8')
+                for line in decoded.splitlines():
+                    if line.startswith('data:'):
+                        data_str = line[len('data:'):].strip()
+                        if data_str == '[DONE]':
+                            return
+
 async def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', action='store_true', help='顯示 streaming 回覆')
@@ -164,6 +188,10 @@ async def main():
         print(f"JSON 解析錯誤: {e}")
         print("請確認 JSON 格式是否正確")
         sys.exit(1)
+    # 執行暖身題
+    print("執行預設暖身題...", flush=True)
+    await warmup_worker(config, start_time)
+    print("暖身完成，開始正式壓測。", flush=True)
     # 根據設定檔路徑計算輸出資料夾
     abs_cfg = os.path.abspath(cfg_path)
     cfg_dir = os.path.dirname(abs_cfg)
